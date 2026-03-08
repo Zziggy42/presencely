@@ -146,7 +146,7 @@ function AuditReport() {
           </div>
 
           {/* 3 hero stats */}
-          <div className="mt-6 pt-6 border-t border-white/10 grid grid-cols-3 gap-4">
+          <div className="mt-6 pt-6 border-t border-white/10 grid grid-cols-3 gap-3">
             <div>
               <p className="text-2xl font-black text-white">{rawVisits.toLocaleString()}</p>
               <p className="text-xs text-slate-400 mt-0.5">est. visitors/month from Google</p>
@@ -265,7 +265,7 @@ function AuditReport() {
               </p>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             {[
               { icon: "🤖", title: "AI Review Replies",     desc: "Auto-draft responses to every review in seconds" },
               { icon: "📈", title: "Demand Forecast",       desc: "See which days will be busy — before they happen" },
@@ -290,7 +290,7 @@ function AuditReport() {
         </div>
 
         {/* ── Social proof ── */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {testimonials.map((t) => (
             <div key={t.business} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 mb-2" />
