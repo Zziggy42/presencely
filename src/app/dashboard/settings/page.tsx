@@ -1,27 +1,40 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
   CheckCircle, AlertCircle, Link2, Building2,
   Bell, CreditCard, Zap, ArrowRight, Database,
-  CheckCircle2, TrendingUp, Users,
+  CheckCircle2, TrendingUp, Users, Loader2,
 } from "lucide-react"
 import { businessInfo, posIntegrations, posUnlockPreview } from "@/lib/mock-data"
+import type { GoogleConnectionStatus } from "@/app/api/google/status/route"
 
-// ─── Online presence integrations (unchanged) ────────────────────────────────
-const onlineIntegrations = [
-  { name: "Google Business Profile", initial: "G", color: "bg-blue-100 text-blue-700",   connected: true,  description: "Maps, visibility, reviews"      },
-  { name: "Google Search Console",   initial: "G", color: "bg-green-100 text-green-700",  connected: true,  description: "Keywords, impressions, clicks"  },
-  { name: "Google Analytics 4",      initial: "G", color: "bg-orange-100 text-orange-700",connected: false, description: "Website traffic & sessions"      },
-  { name: "Yelp Business",           initial: "Y", color: "bg-red-100 text-red-700",      connected: true,  description: "Yelp reviews & rating"          },
-  { name: "TripAdvisor",             initial: "T", color: "bg-emerald-100 text-emerald-700", connected: false, description: "TripAdvisor reviews"         },
-  { name: "Facebook Pages",          initial: "f", color: "bg-indigo-100 text-indigo-700",connected: false, description: "Social engagement & reach"      },
+// ─── Secondary integrations (static) ─────────────────────────────────────────
+const secondaryIntegrations = [
+  { name: "Google Analytics 4", initial: "G", color: "bg-orange-100 text-orange-700", connected: false, description: "Website traffic & sessions" },
+  { name: "Yelp Business",      initial: "Y", color: "bg-red-100 text-red-700",       connected: false, description: "Yelp reviews & rating"      },
+  { name: "TripAdvisor",        initial: "T", color: "bg-emerald-100 text-emerald-700",connected: false, description: "TripAdvisor reviews"        },
+  { name: "Facebook Pages",     initial: "f", color: "bg-indigo-100 text-indigo-700", connected: false, description: "Social engagement & reach"  },
 ]
 
-const connectedCount = onlineIntegrations.filter((i) => i.connected).length
-
 export default function SettingsPage() {
+  const [googleStatus, setGoogleStatus] = useState<GoogleConnectionStatus | null>(null)
+  const [googleLoading, setGoogleLoading] = useState(true)
+
+  useEffect(() => {
+    fetch("/api/google/status")
+      .then((r) => r.json())
+      .then((d) => setGoogleStatus(d))
+      .catch(() => setGoogleStatus({ connected: false, gbpConnected: false, gscConnected: false }))
+      .finally(() => setGoogleLoading(false))
+  }, [])
+
+  const connectedCount =
+    (googleStatus?.gbpConnected ? 1 : 0) +
+    (googleStatus?.gscConnected ? 1 : 0)
+
   return (
     <div className="p-6 space-y-8 max-w-5xl">
 
@@ -235,30 +248,82 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Link2 className="w-4 h-4 text-slate-500" />
-              <CardTitle className="text-base font-semibold">Online Presence</CardTitle>
+              <CardTitle className="text-base font-semibold">Google Integrations</CardTitle>
             </div>
-            <div className="flex items-center gap-2">
-              {connectedCount < onlineIntegrations.length && (
-                <Badge className="bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-50 text-xs">
-                  {connectedCount}/{onlineIntegrations.length} connected
-                </Badge>
-              )}
+            {!googleLoading && (
               <span className="text-xs text-slate-400">
-                {connectedCount < onlineIntegrations.length
-                  ? `Add ${onlineIntegrations.length - connectedCount} more for better predictions`
-                  : "All sources connected ✓"}
+                {connectedCount > 0 ? `${connectedCount} connected` : "Not connected"}
               </span>
-            </div>
+            )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-2">
-          {onlineIntegrations.map((int) => (
-            <div
-              key={int.name}
-              className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
-                int.connected ? "border-emerald-100 bg-emerald-50/30" : "border-slate-100 hover:border-slate-200"
-              }`}
-            >
+        <CardContent className="space-y-3">
+
+          {/* Google Business Profile */}
+          <div className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+            googleStatus?.gbpConnected ? "border-emerald-100 bg-emerald-50/30" : "border-slate-100"
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm bg-blue-100 text-blue-700">G</div>
+              <div>
+                <p className="text-sm font-medium text-slate-900">Google Business Profile</p>
+                <p className="text-xs text-slate-400">
+                  {googleStatus?.gbpConnected
+                    ? googleStatus.gbpBusinessName ?? "Connected"
+                    : "Maps ranking, reviews, photos, visibility"}
+                </p>
+              </div>
+            </div>
+            {googleLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+            ) : googleStatus?.gbpConnected ? (
+              <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+                <CheckCircle className="w-4 h-4" /> Connected
+              </div>
+            ) : (
+              <a
+                href="/api/google/connect"
+                className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                Connect
+              </a>
+            )}
+          </div>
+
+          {/* Google Search Console */}
+          <div className={`flex items-center justify-between p-3 rounded-xl border transition-colors ${
+            googleStatus?.gscConnected ? "border-emerald-100 bg-emerald-50/30" : "border-slate-100"
+          }`}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm bg-green-100 text-green-700">G</div>
+              <div>
+                <p className="text-sm font-medium text-slate-900">Google Search Console</p>
+                <p className="text-xs text-slate-400">
+                  {googleStatus?.gscConnected
+                    ? googleStatus.gscSiteUrl ?? "Connected"
+                    : "Keyword rankings, impressions, click-through rates"}
+                </p>
+              </div>
+            </div>
+            {googleLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+            ) : googleStatus?.gscConnected ? (
+              <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+                <CheckCircle className="w-4 h-4" /> Connected
+              </div>
+            ) : (
+              <a
+                href="/api/google/connect"
+                className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                Connect
+              </a>
+            )}
+          </div>
+
+          {/* Secondary integrations */}
+          {secondaryIntegrations.map((int) => (
+            <div key={int.name} className="flex items-center justify-between p-3 rounded-xl border border-slate-100">
               <div className="flex items-center gap-3">
                 <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-bold text-sm ${int.color}`}>
                   {int.initial}
@@ -268,25 +333,19 @@ export default function SettingsPage() {
                   <p className="text-xs text-slate-400">{int.description}</p>
                 </div>
               </div>
-              {int.connected ? (
-                <div className="flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
-                  <CheckCircle className="w-4 h-4" />
-                  Connected
-                </div>
-              ) : (
-                <button className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors">
-                  Connect
-                </button>
-              )}
+              <button className="px-3 py-1.5 bg-slate-100 text-slate-500 text-xs font-medium rounded-lg hover:bg-slate-200 transition-colors cursor-not-allowed" disabled>
+                Coming soon
+              </button>
             </div>
           ))}
 
-          {connectedCount < onlineIntegrations.length && (
-            <div className="mt-3 p-3 bg-blue-50 rounded-xl border border-blue-100 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
-              <p className="text-xs text-blue-700">
-                <strong>Tip:</strong> Connecting Google Analytics 4 improves website traffic attribution by up to 40%.
-                Facebook Pages enables social engagement tracking alongside your Google data.
+          {!googleLoading && !googleStatus?.connected && (
+            <div className="mt-1 p-3 bg-indigo-50 rounded-xl border border-indigo-100 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+              <p className="text-xs text-indigo-700">
+                <strong>Connect Google</strong> to replace mock data with your real Presence Score,
+                keyword rankings, and review insights.{" "}
+                <a href="/api/google/connect" className="underline font-semibold">Connect now →</a>
               </p>
             </div>
           )}
