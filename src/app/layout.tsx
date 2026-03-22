@@ -22,6 +22,9 @@ export const metadata: Metadata = {
     siteName: "Presencely",
     type: "website",
   },
+  verification: {
+    google: "googleaf868e51ed8140b7",
+  },
 };
 
 export default function RootLayout({
