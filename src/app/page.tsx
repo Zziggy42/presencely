@@ -1,4 +1,20 @@
+import type { Metadata } from "next"
 import Link from "next/link"
+
+export const metadata: Metadata = {
+  title: "Presencely – AI-Powered Local SEO & Business Presence Platform",
+  description:
+    "Presencely turns your online presence into revenue. Track Google Maps rankings, reviews, SEO health, and foot traffic in one AI-powered dashboard.",
+  alternates: {
+    canonical: "https://presencely-production.up.railway.app",
+  },
+  openGraph: {
+    title: "Presencely – AI-Powered Local SEO & Business Presence Platform",
+    description:
+      "Presencely turns your online presence into revenue. Track Google Maps rankings, reviews, SEO health, and foot traffic in one AI-powered dashboard.",
+    url: "https://presencely-production.up.railway.app",
+  },
+}
 import {
   Zap, ArrowRight, MapPin, Globe, Star, Search,
   TrendingUp, Users, DollarSign, CheckCircle,
